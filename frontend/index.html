@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Secure Image Steganography</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #1e293b;
+      color: white;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      padding: 30px;
+      text-align: center;
+      background: #0f172a;
+    }
+
+    header h1 {
+      font-size: 2.5em;
+    }
+
+    .container {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      padding: 30px;
+      gap: 30px;
+    }
+
+    .card {
+      background: #0f172a;
+      border-top: 6px solid #facc15;
+      padding: 25px;
+      width: 400px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .card h2 {
+      margin-bottom: 10px;
+    }
+
+    input, textarea, button {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 5px;
+    }
+
+    textarea {
+      resize: none;
+    }
+
+    button {
+      background: #facc15;
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    a {
+      color: #facc15;
+      font-weight: bold;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🔐 Secure Image Steganography</h1>
+    <p>Hide secret messages inside images using AES encryption and LSB embedding</p>
+  </header>
+
+  <div class="container">
+    <!-- Hide Section -->
+    <div class="card">
+      <h2>🔒 Hide Message</h2>
+      <input type="file" id="hideImage" accept="image/png">
+      <textarea id="hideMessage" placeholder="Enter secret message"></textarea>
+      <input type="password" id="hidePassword" placeholder="Enter password">
+      <button onclick="hideMessage()">Hide Message</button>
+      <p id="downloadLink"></p>
+    </div>
+
+    <!-- Extract Section -->
+    <div class="card">
+      <h2>🔍 Extract Message</h2>
+      <input type="file" id="extractImage" accept="image/png">
+      <input type="password" id="extractPassword" placeholder="Enter password">
+      <button onclick="extractMessage()">Extract Message</button>
+      <p id="extractedText"></p>
+    </div>
+  </div>
+
+  <script>
+    async function hideMessage() {
+      const image = document.getElementById('hideImage').files[0];
+      const message = document.getElementById('hideMessage').value;
+      const password = document.getElementById('hidePassword').value;
+      const formData = new FormData();
+      formData.append('image', image);
+      formData.append('message', message);
+      formData.append('password', password);
+
+      const res = await fetch('http://localhost:5000/api/hide', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        document.getElementById('downloadLink').innerHTML = `<a href="${url}" download="stego_image.png">Download Stego Image</a>`;
+      } else {
+        alert('Failed to hide message');
+      }
+    }
+
+    async function extractMessage() {
+      const image = document.getElementById('extractImage').files[0];
+      const password = document.getElementById('extractPassword').value;
+      const formData = new FormData();
+      formData.append('image', image);
+      formData.append('password', password);
+
+      const res = await fetch('http://localhost:5000/api/extract', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        document.getElementById('extractedText').innerText = `Message: ${data.message}`;
+      } else {
+        alert('Failed to extract message');
+      }
+    }
+  </script>
+</body>
+</html>
